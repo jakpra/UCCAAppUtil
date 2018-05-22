@@ -81,8 +81,13 @@ def consider(tokenIDs, token_annotations, users, exclude=False):
     return True
         
 def main(args):
-    filename = args[0]
-
+    try:
+        filename = args[0]
+    except:
+        print("Convert UCCAApp user tasks (as retrieved by get_tasks.py) from JSON format into human-readable table format (use 'lex' flag) and/or creates confusion matrices and calculates agreement (use 'conf' flag).", file=sys.stderr)
+        print("\nusage: python tabulate.py TASKS [lex] [conf]", file=sys.stderr)
+        exit(1)
+        
     with open(filename) as f:
         tasks = json.load(f)
 
@@ -110,7 +115,7 @@ def main(args):
         for unit in task["annotation_units"]:            
             tokenIDs = tuple(tok["id"] for tok in unit["children_tokens"])                
             refinement = {cat["slot"]: catId2cat[cat["id"]]["name"] for cat in unit["categories"] if cat["slot"] <= 2}
-            if refinement or unit["comment"]:
+            if {"id": 54, "slot": 3} in unit["categories"]: # refinement or unit["comment"]:
                 try:
                     tokId2tok[tokenIDs[0]]
                 except KeyError:
@@ -136,14 +141,14 @@ def main(args):
     if "lex" in args:
 
         ## All units
-        print("\t" + "\t\t\t\t".join(all_users) + "\t\t\t\t" + "\t\t".join(["plurality vote", "majority vote", "adjudication"]) + "\t" + "\t".join(["comments", "agreement", "context"]))
-        print("\t" + "\t".join(len(all_users) * ["scene", "", "function", ""]) + "\t".join(3 * ["scene", "function"]))
+        print("\t\t" + "\t\t\t\t".join(all_users) + "\t\t\t\t" + "\t\t".join(["plurality vote", "majority vote", "adjudication"]) + "\t\t" + "comments" + "\t" + "\t\t".join(["agreement", "context"]))
+        print("\t\t" + "\t".join(len(all_users) * ["scene", "", "function", ""]) + "\t" + "\t".join(3 * ["scene", "function"]) + "\t\t" + "scene\tfunction")
 
-        _considered_units = considered_units.items()
+        _considered_units = sorted(considered_units.items(), key=lambda x:x[0][0])
         for tokenIDs, users in _considered_units:
             
             tokens = "_".join([tokId2tok[ID]["text"] for ID in sorted(tokenIDs)])
-            line = "{} {}".format(tokenIDs, tokens)
+            line = "{}\t{}".format(", ".join(str(x) for x in tokenIDs), tokens)
             uniq_scene = defaultdict(int)
             uniq_func = defaultdict(int)
 
