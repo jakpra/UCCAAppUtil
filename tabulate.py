@@ -381,7 +381,7 @@ def main(args):
 
             
         ## Confusion matrices
-        for _scope in ["scene"]: #, "function"]:
+        for _scope in ["scene", "function"]:
 
             print((len(_scope) + 4) * "#")
             print("# {} #".format(len(_scope)*" "))
