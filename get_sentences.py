@@ -2,11 +2,16 @@ import sys
 
 from helpers import *
 
+try:
+    corpus = sys.argv[1]
+    idsFile = sys.argv[2]
+    invert = "-v" in sys.argv
 
-corpus = sys.argv[1]
-idsFile = sys.argv[2]
-invert = "-v" in sys.argv
-
+except:
+    print("Script for fetching sentences from a corpus, according to a list of sentence IDs (contained in a file, one ID per line). Use -v to invert.", file=sys.stderr)
+    print("\nusage: python get_sentences.py CORPUS SENTENCE_IDs", file=sys.stderr)
+    exit(1)
+    
 ids = set()
 
 with open(idsFile) as f:

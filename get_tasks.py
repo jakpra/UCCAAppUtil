@@ -15,11 +15,11 @@ source = 16
 
 def main():
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Download user tasks from UCCAApp according to a list of task IDs (either as a space-separated list with --ids, or as a file, one ID per line, with --file). Outputs retrieved tasks in JSON format, which can be further processed using tabulate.py.')
     parser.add_argument('-i', '--ids', type=str)
     parser.add_argument('-f', '--file', type=str)
-    parser.add_argument('-n', '--username', type=str)
-    parser.add_argument('-p', '--password', type=str)
+    parser.add_argument('username', type=str)
+    parser.add_argument('password', type=str)
     args = parser.parse_args()
     
     server_accessor = uapi.ServerAccessor(server_address=server_address, \
