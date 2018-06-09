@@ -26,10 +26,10 @@ $ python get_tasks.py -f sample_tasks.txt YourUCCAAppUsername YourUCCAAppPasswor
 * Bring JSON objects into spreadsheet-able format.
 ```
 $ python tabulate.py sample_tasks.json lex > sample_tasks.tsv
-$ head -n2 sample_tasks.tsv
+$ head -n3 sample_tasks.tsv
                 Alice                        Bob                                  plurality vote                majority vote                   adjudication         comments          agreement           context
                 scene           function     scene            function            scene           function      scene          function         scene   function                       scene  function
-2   in          Circumstance    Locus        Circumstance     Circumstance        Circumstance                  Circumstance                                                           1.0       1.0        Context in context
+2   in          Circumstance    Locus        Circumstance     Circumstance        Circumstance                  Circumstance                                                           1.0       1.0        Context |in| context
 ```
 * Import .tsv file into a spreadsheet.
 
