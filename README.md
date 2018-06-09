@@ -2,6 +2,37 @@
 
 This repository contains a few scripts for creating and downloading user tasks from UCCAApp, formatting them for use in spreadsheets or creating confusion matrices, and sampling and splitting text into passages for upload to UCCAApp.
 
+## Standard workflows
+
+### Download annotation tasks and create spreadsheet
+
+* Create file containing task ids for all relevant tasks (may span multiple annotators), one id per line.
+```
+$ echo """1231
+1232
+1233
+1234""" > sample_tasks.txt
+$ cat sample_tasks.txt
+1231
+1232
+1233
+1234
+```
+* Download tasks from UCCAApp (prints a JSON object per task; pipe to file).
+```
+$ python get_tasks.py -f sample_tasks.txt YourUCCAAppUsername YourUCCAAppPassword > sample_tasks.json
+... lots of debugging output ...
+```
+* Bring JSON objects into spreadsheet-able format.
+```
+$ python tabulate.py sample_tasks.json lex > sample_tasks.tsv
+$ head -n2 sample_tasks.tsv
+                Alice                        Bob                                  plurality vote                majority vote                   adjudication         comments          agreement           context
+                scene           function     scene            function            scene           function      scene          function         scene   function                       scene  function
+2   in          Circumstance    Locus        Circumstance     Circumstance        Circumstance                  Circumstance                                                           1.0       1.0        Context in context
+```
+* Import .tsv file into a spreadsheet.
+
 ## Contents
 
 * get_sentences.py: Script for fetching sentences from a corpus, according to a list of sentence IDs (contained in a file, one ID per line). Use -v to invert.
