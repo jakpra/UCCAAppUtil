@@ -68,6 +68,11 @@ class Sentence:
                 self.meta_dict[k.strip()] = v.strip()
             except ValueError:
                 print("could not parse meta info: ", meta_info, ", at", meta[0], file=sys.stderr)
+        TEXT = 'text'
+        if TEXT not in self.meta_dict:
+            text = ' '.join(t.word for t in self.tokens)
+            self.meta.append(f'# {TEXT} = {text}')
+            self.meta_dict[TEXT] = text
 
 def sentences(filename, format="conllu", conllulex=False):
     tokens, meta = [], []

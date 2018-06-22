@@ -40,7 +40,7 @@ with open(anno) as f:
         token = _token.split('_')
         token0 = token[0]
         
-        context = re.sub('\\"', '"', _line[iContext])
+        context = re.sub('\\\\"', '"', _line[iContext])
         context = re.sub(' +', ' ', context)
         context = context.split()
         iTarget = context.index(f'|{token0}|')
@@ -48,7 +48,7 @@ with open(anno) as f:
                                      context[iTarget:iTarget+len(token)], \
                                      context[iTarget+1:]#len(token):]
 
-        assert [f'|{x}|' for x in token] == target, (token, token0, target, context)
+        assert [f'|{x}|' for x in token][0] == target[0], (token, token0, target, context)
           
         units.append((IDs[0], token0, _line[iScene], _line[iFunction], lcontext, rcontext, token))
 
@@ -66,6 +66,7 @@ for sent in sentences(corpus, format='conllu'):
     new_sent = True
     for tok in sent.tokens:
         tok.new_sent = new_sent
+        tok.meta = sent.meta
         new_sent = False
         all_tokens.append(tok)
 
@@ -74,9 +75,12 @@ try:
     #for sent in sentences(corpus, format='conllu'):
     #   for k, tok in enumerate(sent.tokens):
     for k, tok in enumerate(all_tokens):
-        lcont = [t.word for t in all_tokens[max(0, k-5):k]]
-        rcont = [t.word for t in all_tokens[k+1:min(k+6, len(all_tokens))]]
+        lcont = [t.word for t in all_tokens[max(0, k-10):k]]
+        rcont = [t.word for t in all_tokens[k+1:min(k+11, len(all_tokens))]]
         template = ['_'] *  9
+        mo = re.match('.*(\d+\:\d+).*', tok.fields[-1])
+        if mo:
+            template[0] = mo.groups()[0]
         if done_with_previous:
             unit_candidate = next(unit_iterator)
             
@@ -102,7 +106,7 @@ try:
                 raise InvalidSS(function)
             
             #assert tok.word == unit_token0, (tok.word, unit_token0)
-            assert lcont[-4:] == lcontext[-4:] or rcont[:4] == rcontext[:4], (lcont, lcontext, rcont, rcontext)
+            assert lcont[-min(10,len(lcontext)):] == lcontext[-10:] or rcont[:min(10, len(rcontext))] == rcontext[:10], (lcont, lcontext, rcont, rcontext)
 
         except AssertionError as e:
             print(e, file=sys.stderr)
@@ -115,17 +119,24 @@ try:
             #pass
 
         else:
-            template[2] = ' ' .join(token)
-            template[3] = ('p.' if scene[0] != '`' else '') + scene
-            template[4] = ('p.' if scene[0] != '`' else '') + function
+            lexlemma = re.sub('^his$', 'he', ' '.join(token).lower())
+            lexlemma = re.sub('^her$', 'she', lexlemma)
+            template[2] = lexlemma
+            template[3] = ('p.' if scene[0] != '`' else '') + scene.replace('Part/Portion', 'PartPortion')
+            template[4] = ('p.' if scene[0] != '`' else '') + function.replace('Part/Portion', 'PartPortion')
 #            template[5] = unit_token0
             done_with_previous = True
 #            print('\t'.join(tok.fields[:-1] + template))
 
+#        if tok.word == "in" and "Buch" in rcont:
+#            print(tok.orig, lcont, lcontext, rcont, rcontext, sep='\n')
+#            exit(0)
 
         if tok.new_sent:
             print()
-        print('\t'.join(tok.fields[:-1] + template + [tok.fields[-1]]))
+            for line in tok.meta:
+                print(line)
+        print('\t'.join(tok.fields[:-1] + template))
             
             #if tok.fields[-1].endswith('*'):
             #    while True:
@@ -163,6 +174,11 @@ try:
             #    #pass
 
 except StopIteration:
-    pass
+    template = 9 * ['_']
+    for tok in all_tokens[k:]:
+        if tok.new_sent:
+            break
+        print('\t'.join(tok.fields[:-1] + template))
 
-print(assert_fail_ctr)
+        
+#print(assert_fail_ctr)
