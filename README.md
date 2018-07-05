@@ -8,14 +8,14 @@ This repository contains a few scripts for creating and downloading user tasks f
 
 * Clone UCCA API repository and add it to PYTHONPATH
 ```
-REPO_PATH=/enter/some/path
-git clone https://github.com/danielhers/ucca $REPO_PATH
-export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
+API_PATH=/enter/some/path
+git clone https://github.com/danielhers/ucca $API_PATH
+export PYTHONPATH="$PYTHONPATH:$API_PATH"
 ```
 
 * Create file containing task ids for all relevant tasks (may span multiple annotators), one id per line.
 ```
-echo -e """1231\n1232\n1233\n1234""" > sample_tasks.txt
+echo -e "1223\n1279" > sample_tasks.txt
 cat sample_tasks.txt
 ```
 
@@ -30,9 +30,10 @@ python tabulate.py sample_tasks.json lex > sample_tasks.tsv
 head -n3 sample_tasks.tsv
 ```
 ```
-                Alice                        Bob                                  plurality vote                majority vote                   adjudication         comments          agreement           context
-                scene           function     scene            function            scene           function      scene          function         scene   function                       scene  function
-2   in          Circumstance    Locus        Circumstance     Circumstance        Circumstance                  Circumstance                                                           1.0       1.0        Context |in| context
+		Jakob				plurality vote		majority vote		adjudication		comments	agreement		context
+		scene		function		scene	function	scene	function	scene	function		scene	function
+89026	to	ComparisonRef		Goal		ComparisonRef	Goal	ComparisonRef	Goal				1.0	1.0	     It is hard to find ... and the mexican food is bland , almost equivalent |to| eating out of a can .   I would appreciate reviews from anyone who has worked with me before in
+
 ```
 * Import .tsv file into a spreadsheet.
 
