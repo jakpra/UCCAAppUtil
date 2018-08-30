@@ -6,30 +6,34 @@ This repository contains a few scripts for creating and downloading user tasks f
 
 ### Download annotation tasks and create spreadsheet
 
+* Clone UCCA API repository and add it to PYTHONPATH
+```
+API_PATH=/enter/some/path
+git clone https://github.com/danielhers/ucca $API_PATH
+export PYTHONPATH="$PYTHONPATH:$API_PATH"
+```
+
 * Create file containing task ids for all relevant tasks (may span multiple annotators), one id per line.
 ```
-$ echo """1231
-1232
-1233
-1234""" > sample_tasks.txt
-$ cat sample_tasks.txt
-1231
-1232
-1233
-1234
+echo -e "1223\n1279" > sample_tasks.txt
+cat sample_tasks.txt
 ```
+
 * Download tasks from UCCAApp (prints a JSON object per task; pipe to file).
 ```
-$ python get_tasks.py -f sample_tasks.txt YourUCCAAppUsername YourUCCAAppPassword > sample_tasks.json
-... lots of debugging output ...
+python get_tasks.py -f sample_tasks.txt YourUCCAAppUsername YourUCCAAppPassword > sample_tasks.json
 ```
+
 * Bring JSON objects into spreadsheet-able format.
 ```
-$ python tabulate.py sample_tasks.json lex > sample_tasks.tsv
-$ head -n3 sample_tasks.tsv
-                Alice                        Bob                                  plurality vote                majority vote                   adjudication         comments          agreement           context
-                scene           function     scene            function            scene           function      scene          function         scene   function                       scene  function
-2   in          Circumstance    Locus        Circumstance     Circumstance        Circumstance                  Circumstance                                                           1.0       1.0        Context |in| context
+python tabulate.py sample_tasks.json lex > sample_tasks.tsv
+head -n3 sample_tasks.tsv
+```
+```
+		Jakob				plurality vote		majority vote		adjudication		comments	agreement		context
+		scene		function		scene	function	scene	function	scene	function		scene	function
+89026	to	ComparisonRef		Goal		ComparisonRef	Goal	ComparisonRef	Goal				1.0	1.0	     It is hard to find ... and the mexican food is bland , almost equivalent |to| eating out of a can .   I would appreciate reviews from anyone who has worked with me before in
+
 ```
 * Import .tsv file into a spreadsheet.
 
