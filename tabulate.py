@@ -94,12 +94,12 @@ def main(args):
     relevant_units = defaultdict(dict)
     all_users = set()
 
-    first_task = list(tasks.values())[0]
+    first_task = tasks[0] #.values())[0]
     
     catId2cat = ID2item("categories", first_task["project"]["layer"])
     tokId2tok = ID2item("tokens", first_task)
     
-    for taskID, task in tasks.items():
+    for task in tasks:
         userfname = task["user"]["first_name"]
 #        if not isCompleted(task):
 #            print("WARNING: task {} ({}) is not completed and will be ignored".format(taskID, userfname), file=sys.stderr)
@@ -115,7 +115,10 @@ def main(args):
         for unit in task["annotation_units"]:            
             tokenIDs = tuple(tok["id"] for tok in unit["children_tokens"])                
             refinement = {cat["slot"]: catId2cat[cat["id"]]["name"] for cat in unit["categories"] if cat["slot"] <= 2}
-            if {"id": 54, "slot": 3} in unit["categories"]: # refinement or unit["comment"]:
+            #if any("refinedCategory" not in cat for cat in unit["categories"]):
+            #    print(unit)
+            #    exit(1)
+            if any(cat.get("refinedCategory") for cat in unit["categories"]) or unit["comment"]:
                 try:
                     tokId2tok[tokenIDs[0]]
                 except KeyError:

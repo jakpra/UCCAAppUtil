@@ -10,8 +10,9 @@ import uccaapp.api as uapi
 
 
 server_address = "http://ucca.development.cs.huji.ac.il"
-project = 92
-source = 16
+#server_address = "http://ucca.staging.cs.huji.ac.il"
+project = 95 # 11 # 92
+source = 12 # 16
 
 def main():
 
@@ -48,8 +49,10 @@ def main():
         d[task_id] = task
 
 
-    print(json.dumps(d, indent=True))
+    #for task in d.values():
+    #    print(json.dumps(task, indent=2))
 
+    print(json.dumps(list(d.values()), indent=2))
 
 
 if __name__ == "__main__":
