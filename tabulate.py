@@ -1,5 +1,6 @@
 import sys
 import json
+import random
 
 from collections import defaultdict
 from operator import itemgetter
@@ -15,7 +16,7 @@ def isCompleted(task, required=[54]):
         needs_refinement = False
         has_refinement = False
         for cat in unit["categories"]:
-            if cat["slot"] > 2:
+            if cat["slot"] == 1:  # > 2:
                 if cat["id"] in required:
                     needs_refinement = True
             else:
@@ -100,7 +101,7 @@ def main(args):
     tokId2tok = ID2item("tokens", first_task)
     
     for task in tasks:
-        userfname = task["user"]["first_name"]
+        userfname = task["user"]["first_name"][0] + task["user"]["last_name"][0]
 #        if not isCompleted(task):
 #            print("WARNING: task {} ({}) is not completed and will be ignored".format(taskID, userfname), file=sys.stderr)
 #            continue
@@ -113,8 +114,8 @@ def main(args):
         #    unitId2unit = ID2item("annotation_units", task)
         
         for unit in task["annotation_units"]:            
-            tokenIDs = tuple(tok["id"] for tok in unit["children_tokens"])                
-            refinement = {cat["slot"]: catId2cat[cat["id"]]["name"] for cat in unit["categories"] if cat["slot"] <= 2}
+            tokenIDs = tuple(sorted(tok["id"] for tok in unit["children_tokens"]))                
+            refinement = {cat.get("slot", 3): catId2cat.get(cat["id"], {}).get("name", cat["id"]) for cat in unit["categories"] if cat.get("slot", 3) >= 2}
             #if any("refinedCategory" not in cat for cat in unit["categories"]):
             #    print(unit)
             #    exit(1)
@@ -124,7 +125,7 @@ def main(args):
                 except KeyError:
                     tokId2tok.update(ID2item("tokens", task))
                 
-                relevant_units[tuple(sorted(tokenIDs))][userfname] = (refinement, unit["comment"].replace("\n", " "))
+                relevant_units[tuple(sorted(tokenIDs))][userfname] = (refinement, unit["comment"].replace("\n", " "), task["id"])
 
     all_users = sorted(all_users)
 
@@ -139,6 +140,39 @@ def main(args):
         #         break
         if consider(tokenIDs, users, all_users, exclude=("excl" in args)):
             considered_units[tokenIDs] = users
+
+    if "adj" in args:
+
+        _considered_units = sorted(considered_units.items(), key=lambda x:x[0][0])
+        for i, u1 in enumerate(all_users):
+            for u2 in all_users[i+1:]:
+                pair = u1 + "-" + u2
+                outfile = open(filename + "." + pair, "w")
+                for tokenIDs, users in _considered_units:
+                    if u1 in users and u2 in users:
+
+                        if random.randint(0, 1) == 1:
+                            u2, u1 = u1, u2
+
+                        left, right = getContext(tokenIDs, tokId2tok, window=20)
+                        cats1, _, taskID1 = users.get(u1, ({}, ""))
+                        func1 = cats1.get(3, "")
+                        scene1 = cats1.get(2, func1)
+                        cats2, _, taskID2 = users.get(u2, ({}, ""))
+                        func2 = cats2.get(3, "")
+                        scene2 = cats2.get(2, func2)
+
+                        if func1 == func2 and scene1 == scene2: continue
+
+                        print("# task_ids =", taskID1, taskID2, file=outfile)
+                        print("# token_ids =", " ".join(map(str, tokenIDs)), file=outfile)
+                        print("", " ".join(left), " ".join([(("|" if ID in tokenIDs else "") + tokId2tok[ID]["text"] + ("|" if ID in tokenIDs else "")) for ID in range(tokenIDs[0], tokenIDs[-1]+1)]), "", " ".join(right), sep="\t", file=outfile)
+                        print(u1, "", scene1, func1, "", sep="\t", file=outfile)
+                        print(u2, "", scene2, func2, "", sep="\t", file=outfile)
+                        print(file=outfile)
+
+                outfile.close()
+
 
     
     if "lex" in args:
@@ -160,9 +194,9 @@ def main(args):
 
             comments = ""
             for user in all_users:
-                cats, comment = users.get(user, ({}, ""))
-                scene = cats.get(1, "")
-                func = cats.get(2, scene)
+                cats, comment, _ = users.get(user, ({}, ""))
+                func = cats.get(3, "")
+                scene = cats.get(2, func)
                 uniq_scene[scene] += 1
                 uniq_func[func] += 1
                 
@@ -200,7 +234,7 @@ def main(args):
             line += "\t{}\t{}\t{}\t{}\t\t\t".format(scene_argmax_agree, func_argmax_agree, maj_vote[1], maj_vote[2]) + comments
             line += "\t" + str(scene_max_agree/len(all_users)) + "\t" + str(func_max_agree/len(all_users))
             left, right = getContext(tokenIDs, tokId2tok, window=20)
-            line += "\t" + " ".join(left) + " " + " ".join(["|{}|".format(tokId2tok[ID]["text"]) for ID in tokenIDs]) + " " + " ".join(right)
+            line += "\t" + " ".join(left) + " " + " ".join(["|{}|".format(tokId2tok[ID]["text"]) for ID in range(tokenIDs[0], tokenIDs[-1]+1)]) + " " + " ".join(right)
             print(line.replace('"', '\\"'))
 
     if "conf" in args:
