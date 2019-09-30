@@ -37,7 +37,7 @@ def getContext(_tokIDs, tokId2tok, window=10):
 
 hierarchy = {"Circumstance": {"Temporal" : {"Time" : {"StartTime", "EndTime"}, "Frequency":{}, "Duration":{}, "Interval":{}}, "Locus" : {"Source", "Goal"}, "Path" : {"Direction", "Extent"}, "Means":{}, "Manner":{}, "Explanation" : {"Purpose"}},
              "Participant" : {"Causer": {"Agent" : {"Co-Agent"}}, "Theme" : {"Co-Theme", "Topic"}, "Stimulus":{}, "Experiencer":{}, "Originator":{}, "Recipient":{}, "Cost":{}, "Beneficiary":{}, "Instrument":{}},
-             "Configuration" : {"Identity":{}, "Species":{}, "Gestalt" : {"Possessor", "Whole"}, "Characteristic" : {"Possession":{}, "Part/Portion" : {"Stuff"}}, "Accompanier":{}, "InsteadOf":{}, "ComparisonRef":{}, "RateUnit":{}, "Quantity" : {"Approximator"}, "SocialRel" : {"OrgRole"}}
+             "Configuration" : {"Identity":{}, "Species":{}, "Gestalt" : {"Possessor", "Whole"}, "Characteristic" : {"Possession":{}, "PartPortion" : {"Stuff"}}, "Accompanier":{}, "InsteadOf":{}, "ComparisonRef":{}, "RateUnit":{}, "Quantity" : {"Approximator"}, "SocialRel" : {"OrgRole"}}
 }
 
 depth1, depth2, depth3 = defaultdict(str), defaultdict(str), defaultdict(str)
@@ -142,12 +142,13 @@ def main(args):
             considered_units[tokenIDs] = users
 
     if "adj" in args:
-
         _considered_units = sorted(considered_units.items(), key=lambda x:x[0][0])
         for i, u1 in enumerate(all_users):
             for u2 in all_users[i+1:]:
                 pair = u1 + "-" + u2
                 outfile = open(filename + "." + pair, "w")
+                agr_outfile = open(filename + "." + pair + ".agr", "w")
+                print('', 'Adjudication', '', 'context', sep='\t', file=agr_outfile)
                 for tokenIDs, users in _considered_units:
                     if u1 in users and u2 in users:
 
@@ -162,16 +163,20 @@ def main(args):
                         func2 = cats2.get(3, "")
                         scene2 = cats2.get(2, func2)
 
-                        if func1 == func2 and scene1 == scene2: continue
+                        center = " ".join([(("|" if ID in tokenIDs else "") + tokId2tok[ID]["text"] + ("|" if ID in tokenIDs else "")) for ID in range(tokenIDs[0], tokenIDs[-1]+1)])
+
+                        if func1 == func2 and scene1 == scene2:
+                            print(f'{tokenIDs} {"_".join([tokId2tok[ID]["text"] for ID in tokenIDs])}', scene1, func1, f'{" ".join(left)} {center} {" ".join(right)}', sep='\t', file=agr_outfile)
 
                         print("# task_ids =", taskID1, taskID2, file=outfile)
                         print("# token_ids =", " ".join(map(str, tokenIDs)), file=outfile)
-                        print("", " ".join(left), " ".join([(("|" if ID in tokenIDs else "") + tokId2tok[ID]["text"] + ("|" if ID in tokenIDs else "")) for ID in range(tokenIDs[0], tokenIDs[-1]+1)]), "", " ".join(right), sep="\t", file=outfile)
+                        print("", " ".join(left), center, "", " ".join(right), sep="\t", file=outfile)
                         print(u1, "", scene1, func1, "", sep="\t", file=outfile)
                         print(u2, "", scene2, func2, "", sep="\t", file=outfile)
                         print(file=outfile)
 
                 outfile.close()
+                agr_outfile.close()
 
 
     

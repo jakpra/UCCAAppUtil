@@ -38,16 +38,24 @@ def main():
 
     elif args.ids:
         ids = args.ids.split()
-        
-    for ID in ids:
-        try:
-            task_id = int(ID)
-        except ValueError:
-            continue
-            
-        task = server_accessor.get_user_task(task_id)
-        d[task_id] = task
 
+    error_count = 0
+    with open('get_tasks.log', 'w') as f:
+        for ID in ids:
+            print(ID, end=' ', file=f)
+            try:
+                task_id = int(ID)
+            except ValueError:
+                print('ERROR', file=f)
+                error_count += 1
+                continue
+
+            task = server_accessor.get_user_task(task_id)
+            d[task_id] = task
+
+            print('OK', file=f)
+        print('DONE;', error_count, 'ERRORS', file=f)
+        print('DONE;', error_count, 'ERRORS', file=sys.stderr)
 
     #for task in d.values():
     #    print(json.dumps(task, indent=2))
